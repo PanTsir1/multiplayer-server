@@ -54,11 +54,13 @@ io.on('connection', (socket) => {
   socket.on('rematch', () => {
     io.emit('rematch');
   });
-  socket.on('rematchRequest', () => {
+socket.on('rematchRequest', () => {
+  // Send only to the opponent (not back to requester)
   socket.broadcast.emit('rematchRequest');
 });
 
 socket.on('rematchAccepted', () => {
+  // When opponent accepts, notify both players
   io.emit('rematchAccepted');
 });
 
