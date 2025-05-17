@@ -5,33 +5,36 @@ const { Server } = require('socket.io');
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: {
-    origin: '*'
-  }
+  cors: { origin: '*' }
 });
 
 let waitingPlayer = null;
 
 io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
+  console.log('User connected:', socket.id);
 
-  if (waitingPlayer) {
-    const room = `room-${waitingPlayer.id}-${socket.id}`;
-    socket.join(room);
-    waitingPlayer.join(room);
+  socket.on('join', (username) => {
+    socket.username = username;
 
-    waitingPlayer.emit('init', 'white');
-    socket.emit('init', 'black');
+    if (waitingPlayer) {
+      const room = `room-${waitingPlayer.id}-${socket.id}`;
+      socket.join(room);
+      waitingPlayer.join(room);
 
-    waitingPlayer.room = room;
-    socket.room = room;
+      // Send both usernames
+      waitingPlayer.emit('init', { color: 'white', opponent: username });
+      socket.emit('init', { color: 'black', opponent: waitingPlayer.username });
 
-    console.log(`Players paired in room: ${room}`);
+      waitingPlayer.room = room;
+      socket.room = room;
 
-    waitingPlayer = null;
-  } else {
-    waitingPlayer = socket;
-  }
+      console.log(`Players paired in room: ${room}`);
+
+      waitingPlayer = null;
+    } else {
+      waitingPlayer = socket;
+    }
+  });
 
   socket.on('move', (move) => {
     const room = socket.room;
@@ -39,30 +42,26 @@ io.on('connection', (socket) => {
       socket.to(room).emit('move', move);
     }
   });
-  socket.on('resign', (color) => {
-    socket.broadcast.emit('resign', color);
-  });
-  
-  socket.on('drawRequest', () => {
-    socket.broadcast.emit('drawRequest');
-  });
-  
-  socket.on('drawAccepted', () => {
-    io.emit('drawAccepted');
-  });
-  
-  socket.on('rematch', () => {
-    io.emit('rematch');
-  });
-socket.on('rematchRequest', () => {
-  // Send only to the opponent (not back to requester)
-  socket.broadcast.emit('rematchRequest');
-});
 
-socket.on('rematchAccepted', () => {
-  // When opponent accepts, notify both players
-  io.emit('rematchAccepted');
-});
+  socket.on('resign', (color) => {
+    io.to(socket.room).emit('resign', color);
+  });
+
+  socket.on('drawRequest', () => {
+    socket.to(socket.room).emit('drawRequest');
+  });
+
+  socket.on('drawAccepted', () => {
+    io.to(socket.room).emit('drawAccepted');
+  });
+
+  socket.on('rematchRequest', () => {
+    socket.to(socket.room).emit('rematchRequest');
+  });
+
+  socket.on('rematchAccepted', () => {
+    io.to(socket.room).emit('rematchAccepted');
+  });
 
   socket.on('disconnect', () => {
     if (waitingPlayer === socket) {
@@ -76,4 +75,3 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
-
