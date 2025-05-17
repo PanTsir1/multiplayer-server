@@ -39,7 +39,21 @@ io.on('connection', (socket) => {
       socket.to(room).emit('move', move);
     }
   });
-
+  socket.on('resign', (color) => {
+    socket.broadcast.emit('resign', color);
+  });
+  
+  socket.on('drawRequest', () => {
+    socket.broadcast.emit('drawRequest');
+  });
+  
+  socket.on('drawAccepted', () => {
+    io.emit('drawAccepted');
+  });
+  
+  socket.on('rematch', () => {
+    io.emit('rematch');
+  });
   socket.on('disconnect', () => {
     if (waitingPlayer === socket) {
       waitingPlayer = null;
