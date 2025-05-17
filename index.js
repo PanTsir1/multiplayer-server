@@ -1,33 +1,50 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: '*',
-  },
-});
+const io = new Server(server, { cors: { origin: "*" } });
 
-let gameState = {
-  fen: 'start',
-};
+let rooms = {};
 
 io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
+  console.log('New user connected');
 
-  socket.emit('init', gameState.fen);
+  socket.on('joinGame', () => {
+    let room = findOrCreateRoom();
+    socket.join(room);
+    socket.emit('joinedRoom', room);
 
-  socket.on('move', (fen) => {
-    gameState.fen = fen;
-    socket.broadcast.emit('move', fen);
+    if (rooms[room].length === 2) {
+      io.to(room).emit('startGame', { color: 'white' }); // white always starts
+    }
   });
 
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
+  socket.on('move', ({ room, move }) => {
+    socket.to(room).emit('opponentMove', move);
+  });
+
+  socket.on('disconnecting', () => {
+    const roomsLeft = Array.from(socket.rooms).filter(r => r !== socket.id);
+    roomsLeft.forEach(room => {
+      rooms[room] = rooms[room]?.filter(id => id !== socket.id);
+      if (rooms[room]?.length === 0) delete rooms[room];
+    });
   });
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+function findOrCreateRoom() {
+  for (const room in rooms) {
+    if (rooms[room].length === 1) {
+      rooms[room].push(socket.id);
+      return room;
+    }
+  }
+  const roomId = `room-${Math.random().toString(36).substr(2, 9)}`;
+  rooms[roomId] = [socket.id];
+  return roomId;
+}
+
+server.listen(process.env.PORT || 3000, () => {
+  console.log('Server running');
+});
