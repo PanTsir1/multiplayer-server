@@ -54,6 +54,14 @@ io.on('connection', (socket) => {
   socket.on('rematch', () => {
     io.emit('rematch');
   });
+  socket.on('rematchRequest', () => {
+  socket.broadcast.emit('rematchRequest');
+});
+
+socket.on('rematchAccepted', () => {
+  io.emit('rematchAccepted');
+});
+
   socket.on('disconnect', () => {
     if (waitingPlayer === socket) {
       waitingPlayer = null;
