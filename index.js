@@ -68,9 +68,31 @@ io.on('connection', (socket) => {
   });
 
   socket.on('offerDraw', () => {
+    if (socket.room) {
+      socket.to(socket.room).emit('drawOffered');
+    }
+  });
 
-    // ✅ End of the file
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
-});
+  socket.on('drawAccepted', () => {
+    if (socket.room) {
+      io.to(socket.room).emit('drawAccepted');
+    }
+  });
+
+  socket.on('drawDeclined', () => {
+    if (socket.room) {
+      socket.to(socket.room).emit('drawDeclined');
+    }
+  });
+
+  socket.on('disconnect', () => {
+    for (const key in queues) {
+      queues[key] = queues[key].filter(s => s !== socket);
+    }
+    if (socket.opponent) {
+      socket.opponent.emit('opponentDisconnected');
+      socket.opponent.opponent = null;
+    }
+  });
+}); // ✅ CLOSES io.on('connection')
+
