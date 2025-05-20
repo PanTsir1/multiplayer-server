@@ -14,6 +14,7 @@ io.on('connection', (socket) => {
   socket.on('register', (username) => {
     socket.data.username = username;
   });
+  });
 
   socket.on('startGame', ({ time, increment }) => {
     const key = `${time}+${increment}`;
@@ -68,3 +69,8 @@ io.on('connection', (socket) => {
 
   socket.on('offerDraw', () => {
 
+    // ✅ End of the file
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
+});
