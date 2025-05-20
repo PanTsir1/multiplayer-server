@@ -9,10 +9,17 @@ const io = new Server(server, {
 });
 
 let waitingPlayer = null;
+const queues = {};
 
 io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
-  socket.data.username = 'Anonymous';
+  socket.on('startGame', ({time, increment}) => {
+    const key = `${time}+${increment}`;
+    if (!queues[key]) queues[key] = [];
+    queues[key].push(socket);
+
+    if (queues[key].length >= 2) {
+      const player1 = queues[key].shift();
+      const player2 = queues[key].shift();
 
   socket.on('register', (name) => {
     socket.data.username = name;
@@ -31,6 +38,13 @@ io.on('connection', (socket) => {
       whiteSocket.room = room;
       blackSocket.room = room;
 
+            // Store opponent info on socket for future moves/messages
+      player1.opponent = player2;
+      player2.opponent = player1;
+    } else {
+      socket.emit('waitingForOpponent');
+    }
+  });
       waitingPlayer = null;
     } else {
       waitingPlayer = socket;
@@ -62,11 +76,15 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
-    if (waitingPlayer === socket) waitingPlayer = null;
-    console.log('User disconnected:', socket.id);
+    for (const key in queues) {
+      queues[key] = queues[key].filter(s => s !== socket);
+    }
+    if (socket.opponent) {
+      socket.opponent.emit('opponentDisconnected');
+      socket.opponent.opponent = null;
+    }
   });
 });
-
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
