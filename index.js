@@ -22,8 +22,8 @@ io.on('connection', (socket) => {
       socket.join(room);
       waitingPlayer.join(room);
 
-      const whiteSocket = waitingPlayer;
-      const blackSocket = socket;
+      const [whiteSocket, blackSocket] = Math.random() < 0.5 ? [waitingPlayer, socket] : [socket, waitingPlayer];
+
 
       whiteSocket.emit('init', { color: 'white', opponent: blackSocket.data.username });
       blackSocket.emit('init', { color: 'black', opponent: whiteSocket.data.username });
