@@ -32,9 +32,40 @@ let games = {}; // ✅ Also required to store live games by room ID
 io.on('connection', (socket) => {
 
   // Save player's username when they register
-  socket.on('register', (username) => {
-    socket.data.username = username;
-  });
+socket.on('register', (username) => {
+  socket.data.username = username;
+
+  // Look for a game with this player
+  for (const roomId in games) {
+    const game = games[roomId];
+    const { white, black } = game.players;
+
+    if (white === username || black === username) {
+      // Rebind socket
+      const color = white === username ? 'white' : 'black';
+      game.sockets[color] = socket;
+      socket.data.room = roomId;
+      socket.data.color = color;
+
+      // Send current game state
+      socket.emit('init', {
+        color,
+        opponent: game.players[color === 'white' ? 'black' : 'white'],
+        whiteTime: game.time.white,
+        blackTime: game.time.black,
+        increment: game.increment,
+        currentTurn: game.currentTurn
+      });
+
+      // Send chat history if any
+      if (chatHistory[roomId]) {
+        socket.emit('chatHistory', chatHistory[roomId]);
+      }
+
+      return;
+    }
+  }
+});
   
   // ✅ Matchmaking and game setup with selected time control
 socket.on('startGame', ({ time, increment }) => {
