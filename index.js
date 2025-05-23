@@ -24,6 +24,8 @@ function generateRoomId() {
 
 // Store matchmaking queues grouped by time control (e.g., "5+0", "3+2")
 const queues = {};
+let waitingPlayer = null; // ✅ Required to hold a single waiting player
+let games = {}; // ✅ Also required to store live games by room ID
 
 // Listen for new client connections
 io.on('connection', (socket) => {
