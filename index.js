@@ -39,7 +39,6 @@ io.on('connection', (socket) => {
 socket.on('startGame', ({ time, increment }) => {
   if (!waitingPlayer) {
     waitingPlayer = { socket, time, increment };
-    socket.data.color = 'white' or 'black';
     return;
   }
 
