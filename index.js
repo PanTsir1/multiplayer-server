@@ -9,7 +9,6 @@ const server = http.createServer(app);
 
 // Create Socket.IO server and allow CORS from any origin
 // ✅ Use only this CORS-enabled Socket.IO server creation
-const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
     origin: "https://chessfantazy.com",
