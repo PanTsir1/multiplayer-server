@@ -39,6 +39,7 @@ io.on('connection', (socket) => {
 socket.on('startGame', ({ time, increment }) => {
   if (!waitingPlayer) {
     waitingPlayer = { socket, time, increment };
+    socket.data.color = 'white' or 'black';
     return;
   }
 
@@ -94,6 +95,7 @@ socket.on('startGame', ({ time, increment }) => {
 });
   // Handle chatMessage Events
   socket.on('chatMessage', ({ username, message }) => {
+  const color = socket.data.color; // store color when assigning it during game start
   const room = socket.data.room;
   if (room) {
     io.to(room).emit('chatMessage', { username, message });
