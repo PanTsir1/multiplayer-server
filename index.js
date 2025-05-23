@@ -92,7 +92,7 @@ socket.on('startGame', ({ time, increment }) => {
   waitingPlayer = null;
 });
   // ✅ Handle a move, update clock, and sync both clients
-socket.on('move', ({ move }) => {
+socket.on('move', ({ move, fen }) => {
   const room = socket.room;
   if (!room || !games[room]) return;
 
@@ -115,7 +115,7 @@ socket.on('move', ({ move }) => {
   // Broadcast move and times
   io.to(room).emit('move', {
     move,
-    fen: move.fen, // optional if needed
+    fen, // use extracted fen
     whiteTime: game.time.white,
     blackTime: game.time.black,
     currentTurn: game.currentTurn
