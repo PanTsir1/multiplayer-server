@@ -96,6 +96,9 @@ socket.on('startGame', ({ time, increment }) => {
     increment,
     currentTurn: 'white'
   });
+  if (!chatHistory[room]) chatHistory[room] = []; // initialize if missing
+  playerWhite.emit('chatHistory', chatHistory[room]);
+  playerBlack.emit('chatHistory', chatHistory[room]);
 
   waitingPlayer = null;
 });
