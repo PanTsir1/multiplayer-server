@@ -8,16 +8,16 @@ const app = express();
 const server = http.createServer(app);
 
 // Create Socket.IO server and allow CORS from any origin
+// ✅ Use only this CORS-enabled Socket.IO server creation
+const { Server } = require("socket.io");
 const io = new Server(server, {
-  cors: { origin: '*' }
-});
-const io = require("socket.io")(server, {
   cors: {
-    origin: "https://chessfantazy.com", // ✅ Allow your frontend domain
+    origin: "https://chessfantazy.com",
     methods: ["GET", "POST"],
     credentials: true
   }
 });
+
 // ✅ Generates a unique 6-digit room ID
 function generateRoomId() {
   return Math.random().toString(36).substr(2, 6);
