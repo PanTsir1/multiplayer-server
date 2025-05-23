@@ -103,7 +103,7 @@ socket.on('startGame', ({ time, increment }) => {
   const color = socket.data.color; // store color when assigning it during game start
   const room = socket.data.room;
   if (room) {
-    io.to(room).emit('chatMessage', { username, message });
+    io.to(room).emit('chatMessage', { username, message, color });
   }
 });
   // ✅ Handle a move, update clock, and sync both clients
