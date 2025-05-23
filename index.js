@@ -54,9 +54,10 @@ socket.on('startGame', ({ time, increment }) => {
   // Store game state
   games[room] = {
     players: {
-      white: playerWhite.username,
-      black: playerBlack.username
+      white: playerWhite.data.username,
+      black: playerBlack.data.username
     },
+
     sockets: {
       white: playerWhite,
       black: playerBlack
@@ -74,7 +75,7 @@ socket.on('startGame', ({ time, increment }) => {
   // Notify players
   playerWhite.emit('init', {
     color: 'white',
-    opponent: playerBlack.username,
+    opponent: playerBlack.data.username,
     whiteTime: time,
     blackTime: time,
     increment,
@@ -82,7 +83,7 @@ socket.on('startGame', ({ time, increment }) => {
   });
   playerBlack.emit('init', {
     color: 'black',
-    opponent: playerWhite.username,
+    opponent: playerWhite.data.username,
     whiteTime: time,
     blackTime: time,
     increment,
