@@ -51,6 +51,12 @@ socket.on('startGame', ({ time, increment }) => {
   playerBlack.room = room;
   playerBlack.join(room);
 
+    // ✅ Assign to socket.data for chat and game tracking
+  playerWhite.data.color = 'white';
+  playerBlack.data.color = 'black';
+  playerWhite.data.room = room;
+  playerBlack.data.room = room;
+  
   // Store game state
   games[room] = {
     players: {
