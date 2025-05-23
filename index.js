@@ -69,8 +69,12 @@ socket.on('register', (username) => {
           username: 'System',
           message: `${username} reconnected.`,
           timestamp: new Date().toISOString()
-  });
-}
+      });
+    }
+      if (disconnectTimers[roomId] && disconnectTimers[roomId][color]) {
+        clearTimeout(disconnectTimers[roomId][color]);
+        delete disconnectTimers[roomId][color];
+      }
       return;
     }
   }
@@ -219,11 +223,30 @@ socket.on('move', ({ move, fen }) => {
 
   // Clean up when a player disconnects
   socket.on('disconnect', () => {
+  const room = socket.data.room;
+  const color = socket.data.color;
+
+  if (!room || !color || !games[room]) return;
+    
     // Remove player from all queues
     for (const key in queues) {
       queues[key] = queues[key].filter(s => s !== socket);
     }
-
+  // Start a timer to auto-resign
+  disconnectTimers[room] = disconnectTimers[room] || {};
+  disconnectTimers[room][color] = setTimeout(() => {
+    if (games[room]) {
+      io.to(room).emit('chatMessage', {
+        username: 'System',
+        message: `${socket.data.username} forfeited due to disconnect.`,
+        timestamp: new Date().toISOString()
+      });
+      io.to(room).emit('resigned'); // trigger resignation on frontend
+      delete games[room];           // cleanup game
+      delete chatHistory[room];     // optional: clear chat
+    }
+  }, 80000); // 1 minute 20 seconds
+});
     // Notify opponent if player was in a game
     if (socket.opponent) {
       socket.opponent.emit('opponentDisconnected');
