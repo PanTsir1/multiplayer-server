@@ -11,7 +11,13 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: '*' }
 });
-
+const io = require("socket.io")(server, {
+  cors: {
+    origin: "https://chessfantazy.com", // ✅ Allow your frontend domain
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
 // ✅ Generates a unique 6-digit room ID
 function generateRoomId() {
   return Math.random().toString(36).substr(2, 6);
