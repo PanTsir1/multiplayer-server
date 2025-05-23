@@ -1,4 +1,6 @@
 const chatHistory = {}; // Stores chat messages by room ID
+const disconnectTimers = {}; // Track disconnect timers by room and color
+
 // Import required modules
 const express = require('express'); // Web framework to create HTTP server
 const http = require('http'); // Built-in Node.js HTTP module
@@ -61,7 +63,14 @@ socket.on('register', (username) => {
       if (chatHistory[roomId]) {
         socket.emit('chatHistory', chatHistory[roomId]);
       }
-
+      const opponentSocket = game.sockets[color === 'white' ? 'black' : 'white'];
+      if (opponentSocket) {
+        opponentSocket.emit('chatMessage', {
+          username: 'System',
+          message: `${username} reconnected.`,
+          timestamp: new Date().toISOString()
+  });
+}
       return;
     }
   }
