@@ -92,6 +92,13 @@ socket.on('startGame', ({ time, increment }) => {
 
   waitingPlayer = null;
 });
+  // Handle chatMessage Events
+  socket.on('chatMessage', ({ username, message }) => {
+  const room = socket.data.room;
+  if (room) {
+    io.to(room).emit('chatMessage', { username, message });
+  }
+});
   // ✅ Handle a move, update clock, and sync both clients
 socket.on('move', ({ move, fen }) => {
   const room = socket.room;
