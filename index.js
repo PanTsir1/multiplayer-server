@@ -47,6 +47,8 @@ socket.on('startGame', ({ time, increment }) => {
   const playerBlack = playerWhite === socket ? waitingPlayer.socket : socket;
 
   playerWhite.join(room);
+  playerWhite.room = room;
+  playerBlack.room = room;
   playerBlack.join(room);
 
   // Store game state
@@ -89,16 +91,9 @@ socket.on('startGame', ({ time, increment }) => {
 
   waitingPlayer = null;
 });
-
-  // Relay chess moves to the opponent
-  //socket.on('move', (move) => {
-    //if (socket.room) {
-      //socket.to(socket.room).emit('move', move);
-    //}
-  //});
   // ✅ Handle a move, update clock, and sync both clients
 socket.on('move', ({ move }) => {
-  const room = Array.from(socket.rooms).find(r => r !== socket.id);
+  const room = socket.room;
   if (!room || !games[room]) return;
 
   const game = games[room];
