@@ -1,3 +1,4 @@
+const chatHistory = {}; // Stores chat messages by room ID
 // Import required modules
 const express = require('express'); // Web framework to create HTTP server
 const http = require('http'); // Built-in Node.js HTTP module
@@ -99,13 +100,21 @@ socket.on('startGame', ({ time, increment }) => {
   waitingPlayer = null;
 });
   // Handle chatMessage Events
-  socket.on('chatMessage', ({ username, message }) => {
-  const color = socket.data.color; // store color when assigning it during game start
+socket.on('chatMessage', ({ username, message }) => {
+  const color = socket.data.color;
   const room = socket.data.room;
-  if (room) {
-    io.to(room).emit('chatMessage', { username, message });
-  }
+  if (!room) return;
+
+  const timestamp = new Date().toISOString();
+
+  // Store message in memory
+  if (!chatHistory[room]) chatHistory[room] = [];
+  chatHistory[room].push({ username, message, timestamp });
+
+  // Emit message to all in room
+  io.to(room).emit('chatMessage', { username, message, timestamp });
 });
+
   // ✅ Handle a move, update clock, and sync both clients
 socket.on('move', ({ move, fen }) => {
   const room = socket.room;
