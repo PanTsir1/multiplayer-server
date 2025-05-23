@@ -246,7 +246,7 @@ socket.on('move', ({ move, fen }) => {
       delete chatHistory[room];     // optional: clear chat
     }
   }, 80000); // 1 minute 20 seconds
-});
+    
     // Notify opponent if player was in a game
     if (socket.opponent) {
       socket.opponent.emit('opponentDisconnected');
