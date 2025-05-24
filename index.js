@@ -154,6 +154,13 @@ socket.on('startGame', ({ time, increment }) => {
   }
 });
 
+// ✅ Add this inside your socket.on('connection') block:
+socket.on('chatMessage', ({ username, message }) => {
+  const room = socket.data.room;
+  if (!room) return;
+
+  const timestamp = new Date().toISOString();
+
   // Store message in memory
   if (!chatHistory[room]) chatHistory[room] = [];
   chatHistory[room].push({ username, message, timestamp });
@@ -161,6 +168,7 @@ socket.on('startGame', ({ time, increment }) => {
   // Emit message to all in room
   io.to(room).emit('chatMessage', { username, message, timestamp });
 });
+
 
   // ✅ Handle a move, update clock, and sync both clients
 socket.on('move', ({ move, fen }) => {
