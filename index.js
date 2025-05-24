@@ -27,7 +27,6 @@ function generateRoomId() {
 
 // Store matchmaking queues grouped by time control (e.g., "5+0", "3+2")
 const queues = {};
-const queues = {}; // Matchmaking queues grouped by time control
 let games = {}; // ✅ Also required to store live games by room ID
 
 // Listen for new client connections
