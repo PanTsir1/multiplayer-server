@@ -27,7 +27,7 @@ function generateRoomId() {
 
 // Store matchmaking queues grouped by time control (e.g., "5+0", "3+2")
 const queues = {};
-let waitingPlayer = null; // ✅ Required to hold a single waiting player
+const queues = {}; // Matchmaking queues grouped by time control
 let games = {}; // ✅ Also required to store live games by room ID
 
 // Listen for new client connections
@@ -82,77 +82,78 @@ socket.on('register', (username) => {
   
   // ✅ Matchmaking and game setup with selected time control
 socket.on('startGame', ({ time, increment }) => {
-  if (!waitingPlayer) {
-    waitingPlayer = { socket, time, increment };
-    return;
+  const key = `${time}+${increment}`;
+
+  if (!queues[key]) queues[key] = [];
+
+  // Add player to queue
+  queues[key].push(socket);
+
+  // If there are 2 players, start a game
+  if (queues[key].length >= 2) {
+    const player1 = queues[key].shift();
+    const player2 = queues[key].shift();
+
+    const room = generateRoomId();
+    const whiteSocket = Math.random() < 0.5 ? player1 : player2;
+    const blackSocket = whiteSocket === player1 ? player2 : player1;
+
+    whiteSocket.join(room);
+    blackSocket.join(room);
+
+    whiteSocket.data.color = 'white';
+    blackSocket.data.color = 'black';
+    whiteSocket.data.room = room;
+    blackSocket.data.room = room;
+
+    const whiteTime = time;
+    const blackTime = time;
+
+    // Save game
+    games[room] = {
+      players: {
+        white: whiteSocket.data.username,
+        black: blackSocket.data.username
+      },
+      sockets: {
+        white: whiteSocket,
+        black: blackSocket
+      },
+      time: {
+        white: whiteTime,
+        black: blackTime
+      },
+      increment,
+      currentTurn: 'white',
+      lastMoveTimestamp: Date.now(),
+      room
+    };
+
+    // Send game info
+    whiteSocket.emit('init', {
+      color: 'white',
+      opponent: blackSocket.data.username,
+      whiteTime,
+      blackTime,
+      increment,
+      currentTurn: 'white'
+    });
+
+    blackSocket.emit('init', {
+      color: 'black',
+      opponent: whiteSocket.data.username,
+      whiteTime,
+      blackTime,
+      increment,
+      currentTurn: 'white'
+    });
+
+    // Send chat history
+    if (!chatHistory[room]) chatHistory[room] = [];
+    whiteSocket.emit('chatHistory', chatHistory[room]);
+    blackSocket.emit('chatHistory', chatHistory[room]);
   }
-
-  const room = generateRoomId();
-  const playerWhite = Math.random() < 0.5 ? socket : waitingPlayer.socket;
-  const playerBlack = playerWhite === socket ? waitingPlayer.socket : socket;
-
-  playerWhite.join(room);
-  playerWhite.room = room;
-  playerBlack.room = room;
-  playerBlack.join(room);
-
-    // ✅ Assign to socket.data for chat and game tracking
-  playerWhite.data.color = 'white';
-  playerBlack.data.color = 'black';
-  playerWhite.data.room = room;
-  playerBlack.data.room = room;
-  
-  // Store game state
-  games[room] = {
-    players: {
-      white: playerWhite.data.username,
-      black: playerBlack.data.username
-    },
-
-    sockets: {
-      white: playerWhite,
-      black: playerBlack
-    },
-    time: {
-      white: time,
-      black: time
-    },
-    increment,
-    currentTurn: 'white',
-    lastMoveTimestamp: Date.now(),
-    room
-  };
-
-  // Notify players
-  playerWhite.emit('init', {
-    color: 'white',
-    opponent: playerBlack.data.username,
-    whiteTime: time,
-    blackTime: time,
-    increment,
-    currentTurn: 'white'
-  });
-  playerBlack.emit('init', {
-    color: 'black',
-    opponent: playerWhite.data.username,
-    whiteTime: time,
-    blackTime: time,
-    increment,
-    currentTurn: 'white'
-  });
-  if (!chatHistory[room]) chatHistory[room] = []; // initialize if missing
-  playerWhite.emit('chatHistory', chatHistory[room]);
-  playerBlack.emit('chatHistory', chatHistory[room]);
-
-  waitingPlayer = null;
 });
-  // Handle chatMessage Events
-socket.on('chatMessage', ({ username, message }) => {
-  const color = socket.data.color;
-  const room = socket.data.room;
-  if (!room) return;
-
-  const timestamp = new Date().toISOString();
 
   // Store message in memory
   if (!chatHistory[room]) chatHistory[room] = [];
