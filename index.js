@@ -172,7 +172,7 @@ socket.on('chatMessage', ({ username, message }) => {
 
   // ✅ Handle a move, update clock, and sync both clients
 socket.on('move', ({ move, fen }) => {
-  const room = socket.room;
+  const room = socket.data.room;
   if (!room || !games[room]) return;
 
   const game = games[room];
