@@ -82,13 +82,14 @@ socket.on('register', (username) => {
   // ✅ Matchmaking and game setup with selected time control
 socket.on('startGame', ({ time, increment }) => {
   const key = `${time}+${increment}`;
+  socket.data.timeKey = key; // ✅ Track what time control this socket wants
 
   if (!queues[key]) queues[key] = [];
 
-  // Add player to queue
+  // Add player to their correct time control queue
   queues[key].push(socket);
 
-  // If there are 2 players, start a game
+  // Start a game only if there are 2 players in this exact queue
   if (queues[key].length >= 2) {
     const player1 = queues[key].shift();
     const player2 = queues[key].shift();
@@ -108,7 +109,6 @@ socket.on('startGame', ({ time, increment }) => {
     const whiteTime = time;
     const blackTime = time;
 
-    // Save game
     games[room] = {
       players: {
         white: whiteSocket.data.username,
@@ -128,31 +128,23 @@ socket.on('startGame', ({ time, increment }) => {
       room
     };
 
-    // Send game info
-    whiteSocket.emit('init', {
-      color: 'white',
-      opponent: blackSocket.data.username,
-      whiteTime,
-      blackTime,
-      increment,
-      currentTurn: 'white'
+    // Send game init to both players
+    [whiteSocket, blackSocket].forEach(s => {
+      s.emit('init', {
+        color: s.data.color,
+        opponent: s === whiteSocket ? blackSocket.data.username : whiteSocket.data.username,
+        whiteTime,
+        blackTime,
+        increment,
+        currentTurn: 'white'
+      });
+      //Send chat history
+      if (!chatHistory[room]) chatHistory[room] = [];
+      s.emit('chatHistory', chatHistory[room]);
     });
-
-    blackSocket.emit('init', {
-      color: 'black',
-      opponent: whiteSocket.data.username,
-      whiteTime,
-      blackTime,
-      increment,
-      currentTurn: 'white'
-    });
-
-    // Send chat history
-    if (!chatHistory[room]) chatHistory[room] = [];
-    whiteSocket.emit('chatHistory', chatHistory[room]);
-    blackSocket.emit('chatHistory', chatHistory[room]);
   }
 });
+
 
 // ✅ Add this inside your socket.on('connection') block:
 socket.on('chatMessage', ({ username, message }) => {
