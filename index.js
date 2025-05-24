@@ -225,13 +225,17 @@ socket.on('move', ({ move, fen }) => {
   socket.on('disconnect', () => {
   const room = socket.data.room;
   const color = socket.data.color;
-
+  
   if (!room || !color || !games[room]) return;
     
     // Remove player from all queues
     for (const key in queues) {
       queues[key] = queues[key].filter(s => s !== socket);
     }
+    // Remove player from their time control queue
+if (socket.data.timeKey && queues[socket.data.timeKey]) {
+  queues[socket.data.timeKey] = queues[socket.data.timeKey].filter(s => s !== socket);
+}
   // Start a timer to auto-resign
   disconnectTimers[room] = disconnectTimers[room] || {};
   disconnectTimers[room][color] = setTimeout(() => {
