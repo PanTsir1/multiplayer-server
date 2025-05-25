@@ -167,6 +167,7 @@ socket.on('chatMessage', ({ username, message }) => {
 
   // ✅ Handle a move, update clock, and sync both clients
 socket.on('move', ({ move, fen }) => {
+  console.log(`[MOVE] Received from ${socket.data.username}: ${move?.from} -> ${move?.to}`);
   const room = socket.data.room;
   if (!room || !games[room]) return;
 
