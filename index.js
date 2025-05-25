@@ -86,10 +86,10 @@ socket.on('startGame', ({ time, increment }) => {
   queues[key].push(socket);
   socket.data.timeKey = key; // ✅ Track what time control this socket wants
 
-  if (!queues[key]) queues[key] = [];
+  //if (!queues[key]) queues[key] = [];
 
   // Add player to their correct time control queue
-  queues[key].push(socket);
+  //queues[key].push(socket);
 
   // Start a game only if there are 2 players in this exact queue
   if (queues[key].length >= 2) {
