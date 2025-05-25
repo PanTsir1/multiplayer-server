@@ -82,16 +82,15 @@ socket.on('register', (username) => {
   // ✅ Matchmaking and game setup with selected time control
 socket.on('startGame', ({ time, increment }) => {
   const key = `${time}+${increment}`;
+  socket.data.timeKey = key;
   queues[key] = queues[key] || [];
+
+  console.log(`[MATCHMAKING] ${socket.data.username} requested ${key}`);
+  console.log(`[MATCHMAKING] Current queue for ${key}: ${queues[key].map(s => s.data.username).join(', ')}`);
+
   queues[key].push(socket);
-  socket.data.timeKey = key; // ✅ Track what time control this socket wants
 
-  //if (!queues[key]) queues[key] = [];
-
-  // Add player to their correct time control queue
-  //queues[key].push(socket);
-
-  // Start a game only if there are 2 players in this exact queue
+  // Check for match
   if (queues[key].length >= 2) {
     const player1 = queues[key].shift();
     const player2 = queues[key].shift();
@@ -130,7 +129,9 @@ socket.on('startGame', ({ time, increment }) => {
       room
     };
 
-    // Send game init to both players
+    console.log(`[MATCHMAKING] Game started: ${games[room].players.white} (White) vs ${games[room].players.black} (Black)`);
+
+    // Notify both players
     [whiteSocket, blackSocket].forEach(s => {
       s.emit('init', {
         color: s.data.color,
@@ -140,7 +141,7 @@ socket.on('startGame', ({ time, increment }) => {
         increment,
         currentTurn: 'white'
       });
-      //Send chat history
+
       if (!chatHistory[room]) chatHistory[room] = [];
       s.emit('chatHistory', chatHistory[room]);
     });
