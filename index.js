@@ -82,6 +82,8 @@ socket.on('register', (username) => {
   // ✅ Matchmaking and game setup with selected time control
 socket.on('startGame', ({ time, increment }) => {
   const key = `${time}+${increment}`;
+  queues[key] = queues[key] || [];
+  queues[key].push(socket);
   socket.data.timeKey = key; // ✅ Track what time control this socket wants
 
   if (!queues[key]) queues[key] = [];
