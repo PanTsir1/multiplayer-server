@@ -145,8 +145,8 @@ socket.on('register', (username) => {
   
       // Notify both players
       [whiteSocket, blackSocket].forEach(s => {
+        console.log(`[INIT SENT] to ${s.data.username}, color: ${s.data.color}, room: ${room}`);
         s.emit('init', {
-          console.log(`[INIT SENT] to ${s.data.username}, color: ${s.data.color}, room: ${room}`);
           color: s.data.color,
           opponent: s === whiteSocket ? blackSocket.data.username : whiteSocket.data.username,
           whiteTime,
@@ -154,7 +154,7 @@ socket.on('register', (username) => {
           increment,
           currentTurn: 'white'
         });
-        io.to(roomId).emit('opponentInfo', {
+        io.to(room).emit('opponentInfo', {
           white: games[room].players.white,
           black: games[room].players.black,
         });
