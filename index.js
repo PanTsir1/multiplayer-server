@@ -77,77 +77,76 @@ socket.on('register', (username) => {
       return;
     }
   }
-});
   
   // ✅ Matchmaking and game setup with selected time control
-socket.on('startGame', ({ time, increment }) => {
-  const key = `${time}+${increment}`;
-  socket.data.timeKey = key;
-  queues[key] = queues[key] || [];
-
-  console.log(`[MATCHMAKING] ${socket.data.username} requested ${key}`);
-  console.log(`[MATCHMAKING] Current queue for ${key}: ${queues[key].map(s => s.data.username).join(', ')}`);
-
-  queues[key].push(socket);
-
-  // Check for match
-  if (queues[key].length >= 2) {
-    const player1 = queues[key].shift();
-    const player2 = queues[key].shift();
-
-    const room = generateRoomId();
-    const whiteSocket = Math.random() < 0.5 ? player1 : player2;
-    const blackSocket = whiteSocket === player1 ? player2 : player1;
-
-    whiteSocket.join(room);
-    blackSocket.join(room);
-
-    whiteSocket.data.color = 'white';
-    blackSocket.data.color = 'black';
-    whiteSocket.data.room = room;
-    blackSocket.data.room = room;
-
-    const whiteTime = time;
-    const blackTime = time;
-
-    games[room] = {
-      players: {
-        white: whiteSocket.data.username,
-        black: blackSocket.data.username
-      },
-      sockets: {
-        white: whiteSocket,
-        black: blackSocket
-      },
-      time: {
-        white: whiteTime,
-        black: blackTime
-      },
-      increment,
-      currentTurn: 'white',
-      lastMoveTimestamp: Date.now(),
-      room
-    };
-
-    console.log(`[MATCHMAKING] Game started: ${games[room].players.white} (White) vs ${games[room].players.black} (Black)`);
-
-    // Notify both players
-    [whiteSocket, blackSocket].forEach(s => {
-      s.emit('init', {
-        color: s.data.color,
-        opponent: s === whiteSocket ? blackSocket.data.username : whiteSocket.data.username,
-        whiteTime,
-        blackTime,
+  socket.on('startGame', ({ time, increment }) => {
+    const key = `${time}+${increment}`;
+    socket.data.timeKey = key;
+    queues[key] = queues[key] || [];
+  
+    console.log(`[MATCHMAKING] ${socket.data.username} requested ${key}`);
+    console.log(`[MATCHMAKING] Current queue for ${key}: ${queues[key].map(s => s.data.username).join(', ')}`);
+  
+    queues[key].push(socket);
+  
+    // Check for match
+    if (queues[key].length >= 2) {
+      const player1 = queues[key].shift();
+      const player2 = queues[key].shift();
+  
+      const room = generateRoomId();
+      const whiteSocket = Math.random() < 0.5 ? player1 : player2;
+      const blackSocket = whiteSocket === player1 ? player2 : player1;
+  
+      whiteSocket.join(room);
+      blackSocket.join(room);
+  
+      whiteSocket.data.color = 'white';
+      blackSocket.data.color = 'black';
+      whiteSocket.data.room = room;
+      blackSocket.data.room = room;
+  
+      const whiteTime = time;
+      const blackTime = time;
+  
+      games[room] = {
+        players: {
+          white: whiteSocket.data.username,
+          black: blackSocket.data.username
+        },
+        sockets: {
+          white: whiteSocket,
+          black: blackSocket
+        },
+        time: {
+          white: whiteTime,
+          black: blackTime
+        },
         increment,
-        currentTurn: 'white'
+        currentTurn: 'white',
+        lastMoveTimestamp: Date.now(),
+        room
+      };
+  
+      console.log(`[MATCHMAKING] Game started: ${games[room].players.white} (White) vs ${games[room].players.black} (Black)`);
+  
+      // Notify both players
+      [whiteSocket, blackSocket].forEach(s => {
+        s.emit('init', {
+          color: s.data.color,
+          opponent: s === whiteSocket ? blackSocket.data.username : whiteSocket.data.username,
+          whiteTime,
+          blackTime,
+          increment,
+          currentTurn: 'white'
+        });
+  
+        if (!chatHistory[room]) chatHistory[room] = [];
+        s.emit('chatHistory', chatHistory[room]);
       });
-
-      if (!chatHistory[room]) chatHistory[room] = [];
-      s.emit('chatHistory', chatHistory[room]);
-    });
-  }
+    }
+  });
 });
-
 
 // ✅ Add this inside your socket.on('connection') block:
 socket.on('chatMessage', ({ username, message }) => {
