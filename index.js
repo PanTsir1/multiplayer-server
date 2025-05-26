@@ -52,9 +52,9 @@ socket.on('register', (username) => {
       socket.data.color = color;
 
       // Send current game state
-    
+      console.log(`[INIT SENT] to ${s.data.username}, color: ${s.data.color}`);
       socket.emit('init', {
-        console.log(`[INIT SENT] to ${s.data.username}, color: ${s.data.color}`);
+        
         color,
         opponent: game.players[color === 'white' ? 'black' : 'white'],
         whiteTime: game.time.white,
@@ -146,6 +146,7 @@ socket.on('register', (username) => {
       // Notify both players
       [whiteSocket, blackSocket].forEach(s => {
         s.emit('init', {
+          console.log(`[INIT SENT] to ${s.data.username}, color: ${s.data.color}, room: ${room}`);
           color: s.data.color,
           opponent: s === whiteSocket ? blackSocket.data.username : whiteSocket.data.username,
           whiteTime,
@@ -154,15 +155,15 @@ socket.on('register', (username) => {
           currentTurn: 'white'
         });
         io.to(roomId).emit('opponentInfo', {
-          white: whitePlayerUsername,
-          black: blackPlayerUsername,
+          white: games[room].players.white,
+          black: games[room].players.black,
         });
-        socket.on('opponentInfo', ({ white, black }) => {
-          const opponentUsername = (playerColor === 'white') ? black : white;
-          const myName = username;
-          const versusText = `${myName} vs ${opponentUsername} ${selectedTimeControl.base / 60}+${selectedTimeControl.inc} game`;
-          $('#time-box').text(versusText).show();
-        });
+        //socket.on('opponentInfo', ({ white, black }) => {
+          //const opponentUsername = (playerColor === 'white') ? black : white;
+          //const myName = username;
+          //const versusText = `${myName} vs ${opponentUsername} ${selectedTimeControl.base / 60}+${selectedTimeControl.inc} game`;
+          //$('#time-box').text(versusText).show();
+        //});
 
 
         if (!chatHistory[room]) chatHistory[room] = [];
