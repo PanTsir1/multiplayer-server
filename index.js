@@ -141,7 +141,18 @@ socket.on('register', (username) => {
           increment,
           currentTurn: 'white'
         });
-  
+        io.to(roomId).emit('opponentInfo', {
+          white: whitePlayerUsername,
+          black: blackPlayerUsername,
+        });
+        socket.on('opponentInfo', ({ white, black }) => {
+          const opponentUsername = (playerColor === 'white') ? black : white;
+          const myName = username;
+          const versusText = `${myName} vs ${opponentUsername} ${selectedTimeControl.base / 60}+${selectedTimeControl.inc} game`;
+          $('#time-box').text(versusText).show();
+        });
+
+
         if (!chatHistory[room]) chatHistory[room] = [];
         s.emit('chatHistory', chatHistory[room]);
       });
