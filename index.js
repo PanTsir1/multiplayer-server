@@ -1,5 +1,6 @@
 const chatHistory = {}; // Stores chat messages by room ID
 const disconnectTimers = {}; // Track disconnect timers by room and color
+const { Chess } = require('chess.js'); // npm install chess.js
 
 // Import required modules
 const express = require('express'); // Web framework to create HTTP server
@@ -187,19 +188,49 @@ socket.on('move', ({ move, fen }) => {
   game.lastMoveTimestamp = now;
 
   // Broadcast move and times
+// Use chess.js to evaluate ending conditions
+const chess = new Chess(fen);
+
+if (chess.isCheckmate()) {
+  io.to(room).emit('checkmate', {
+    winner: game.players[color === 'white' ? 'white' : 'black']
+  });
+  clearGame(room);
+} else if (chess.isStalemate()) {
+  io.to(room).emit('drawAccepted'); // reuse existing client logic
+  io.to(room).emit('chatMessage', {
+    username: 'System',
+    message: `Draw by stalemate.`,
+    timestamp: new Date().toISOString()
+  });
+  clearGame(room);
+} else if (chess.isInsufficientMaterial()) {
+  io.to(room).emit('drawAccepted');
+  io.to(room).emit('chatMessage', {
+    username: 'System',
+    message: `Draw by insufficient material.`,
+    timestamp: new Date().toISOString()
+  });
+  clearGame(room);
+} else {
+  // Regular move broadcast
   io.to(room).emit('move', {
     move,
-    fen, // use extracted fen
+    fen,
     whiteTime: game.time.white,
     blackTime: game.time.black,
     currentTurn: game.currentTurn
   });
+}
+
+
 });
 
   // Player resigns - notify both players
   socket.on('resign', () => {
     if (socket.room) {
       io.to(socket.room).emit('resigned');
+      clearGame(socket.room); // ✅ cleanup
     }
   });
 
@@ -261,7 +292,11 @@ if (socket.data.timeKey && queues[socket.data.timeKey]) {
     }
   });
 });
-
+function clearGame(room) {
+  console.log(`[CLEANUP] Game in room ${room} ended and was cleared.`);
+  delete games[room];
+  delete chatHistory[room];
+}
 // Start the server on the environment port or default to 3000
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
