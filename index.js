@@ -32,6 +32,7 @@ let games = {}; // ✅ Also required to store live games by room ID
 
 // Listen for new client connections
 io.on('connection', (socket) => {
+console.log(`🟢 New socket connected: ${socket.id}`);
 
   // Save player's username when they register
 socket.on('register', (username) => {
@@ -101,7 +102,12 @@ socket.on('register', (username) => {
   
       whiteSocket.join(room);
       blackSocket.join(room);
-  
+      console.log(`[MATCH FOUND] Room: ${room}`);
+      console.log(`[ROOM ASSIGN] ${whiteSocket.data.username} is White`);
+      console.log(`[ROOM ASSIGN] ${blackSocket.data.username} is Black`);
+      console.log(`[ROOM ASSIGN] White socket ID: ${whiteSocket.id}`);
+      console.log(`[ROOM ASSIGN] Black socket ID: ${blackSocket.id}`);
+
       whiteSocket.data.color = 'white';
       blackSocket.data.color = 'black';
       whiteSocket.data.room = room;
