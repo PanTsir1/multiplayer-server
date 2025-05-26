@@ -36,6 +36,7 @@ console.log(`🟢 New socket connected: ${socket.id}`);
 
   // Save player's username when they register
 socket.on('register', (username) => {
+  console.log(`[REGISTER] ${username} registered with socket ID: ${socket.id}`);
   socket.data.username = username;
 
   // Look for a game with this player
@@ -51,7 +52,9 @@ socket.on('register', (username) => {
       socket.data.color = color;
 
       // Send current game state
+    
       socket.emit('init', {
+        console.log(`[INIT SENT] to ${s.data.username}, color: ${s.data.color}`);
         color,
         opponent: game.players[color === 'white' ? 'black' : 'white'],
         whiteTime: game.time.white,
@@ -82,6 +85,9 @@ socket.on('register', (username) => {
   
   // ✅ Matchmaking and game setup with selected time control
   socket.on('startGame', ({ time, increment }) => {
+    console.log(`[DEBUG] startGame from: ${socket.data.username}`);
+    console.log(`[DEBUG] Queue size for ${key}: ${queues[key].length}`);
+
     const key = `${time}+${increment}`;
     socket.data.timeKey = key;
     queues[key] = queues[key] || [];
