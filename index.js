@@ -191,6 +191,10 @@ socket.on('chatMessage', ({ username, message }) => {
   // Emit message to all in room
   io.to(room).emit('chatMessage', { username, message, timestamp });
 });
+  socket.on('chatMessage', ({ username: from, message }) => {
+    $('#chat-box').append(`<div><strong>${from}:</strong> ${message}</div>`);
+    $('#chat-box').scrollTop($('#chat-box')[0].scrollHeight);
+  });
 
 
   // ✅ Handle a move, update clock, and sync both clients
