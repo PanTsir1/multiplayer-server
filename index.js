@@ -53,7 +53,7 @@ socket.on('register', (username) => {
       socket.data.color = color;
 
       // Send current game state
-      console.log(`[INIT SENT] to ${s.data.username}, color: ${s.data.color}`);
+      console.log(`[INIT SENT] to ${socket.data.username}, color: ${socket.data.color}`);
       socket.emit('init', {
         
         color,
@@ -173,7 +173,7 @@ socket.on('register', (username) => {
       });
     }
   });
-});
+
 
 // ✅ Add this inside your socket.on('connection') block:
 socket.on('chatMessage', ({ username, message }) => {
