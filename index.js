@@ -91,14 +91,15 @@ socket.on('register', (username) => {
 
 
     const key = `${time}+${increment}`;
-    console.log(`[DEBUG] Queue size for ${key}: ${queues[key].length}`);
     socket.data.timeKey = key;
-    queues[key] = queues[key] || [];
-  
+    queues[key] = queues[key] || []; // Initialize the queue if it doesn't exist
+    
+    console.log(`[DEBUG] Queue size for ${key}: ${queues[key].length}`);
     console.log(`[MATCHMAKING] ${socket.data.username} requested ${key}`);
     console.log(`[MATCHMAKING] Current queue for ${key}: ${queues[key].map(s => s.data.username).join(', ')}`);
-  
+    
     queues[key].push(socket);
+
   
     // Check for match
     if (queues[key].length >= 2) {
