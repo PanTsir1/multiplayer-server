@@ -36,6 +36,7 @@ console.log(`🟢 New socket connected: ${socket.id}`);
 
   // Save player's username when they register
 socket.on('register', (username) => {
+  console.log("✅ register received:", username);
   console.log(`[REGISTER] ${username} registered with socket ID: ${socket.id}`);
   socket.data.username = username;
 
@@ -82,9 +83,10 @@ socket.on('register', (username) => {
       return;
     }
   }
-  
+   });
   // ✅ Matchmaking and game setup with selected time control
   socket.on('startGame', ({ time, increment }) => {
+    console.log("✅ startGame received:", time, increment);
     console.log(`[DEBUG] startGame from: ${socket.data.username}`);
     console.log(`[DEBUG] Queue size for ${key}: ${queues[key].length}`);
 
