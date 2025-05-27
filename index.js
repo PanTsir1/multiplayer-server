@@ -88,9 +88,10 @@ socket.on('register', (username) => {
   socket.on('startGame', ({ time, increment }) => {
     console.log("✅ startGame received:", time, increment);
     console.log(`[DEBUG] startGame from: ${socket.data.username}`);
-    console.log(`[DEBUG] Queue size for ${key}: ${queues[key].length}`);
+
 
     const key = `${time}+${increment}`;
+    console.log(`[DEBUG] Queue size for ${key}: ${queues[key].length}`);
     socket.data.timeKey = key;
     queues[key] = queues[key] || [];
   
