@@ -242,22 +242,48 @@ if (chess.isCheckmate()) {
   clearGame(room);
 }
 else if (chess.isStalemate()) {
-  io.to(room).emit('drawAccepted'); // reuse existing client logic
+  // 1) Broadcast the final move + position
+  io.to(room).emit('move', {
+    move,
+    fen,
+    whiteTime: game.time.white,
+    blackTime: game.time.black,
+    currentTurn: game.currentTurn
+  });
+
+  // 2) Signal draw by stalemate
+  io.to(room).emit('drawAccepted');
   io.to(room).emit('chatMessage', {
     username: 'System',
     message: `Draw by stalemate.`,
     timestamp: new Date().toISOString()
   });
+  
   clearGame(room);
+
+}
 } else if (chess.isInsufficientMaterial()) {
+  // 1) Broadcast the final move + position
+  io.to(room).emit('move', {
+    move,
+    fen,
+    whiteTime: game.time.white,
+    blackTime: game.time.black,
+    currentTurn: game.currentTurn
+  });
+
+  // 2) Signal draw by insufficient material
   io.to(room).emit('drawAccepted');
   io.to(room).emit('chatMessage', {
     username: 'System',
     message: `Draw by insufficient material.`,
     timestamp: new Date().toISOString()
   });
+  
   clearGame(room);
-} else {
+
+} 
+else {
   // Regular move broadcast
   io.to(room).emit('move', {
     move,
@@ -267,7 +293,6 @@ else if (chess.isStalemate()) {
     currentTurn: game.currentTurn
   });
 }
-
 
 });
 
