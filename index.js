@@ -224,11 +224,24 @@ socket.on('move', ({ move, fen }) => {
 const chess = new Chess(fen);
 
 if (chess.isCheckmate()) {
+  // 1) send the final move and final position
+  io.to(room).emit('move', {
+    move,
+    fen,
+    whiteTime: game.time.white,
+    blackTime: game.time.black,
+    currentTurn: game.currentTurn
+  });
+
+  // 2) then signal checkmate
   io.to(room).emit('checkmate', {
     winner: game.players[color === 'white' ? 'white' : 'black']
   });
+
+  // 3) clean up
   clearGame(room);
-} else if (chess.isStalemate()) {
+}
+else if (chess.isStalemate()) {
   io.to(room).emit('drawAccepted'); // reuse existing client logic
   io.to(room).emit('chatMessage', {
     username: 'System',
